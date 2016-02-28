@@ -1,6 +1,7 @@
-library(Rglpk)
+#library(Rglpk)
 library(pracma)
-library(gurobi)
+library(Rsymphony)
+#library(gurobi)
 
 
 exactboxes  <- function ( Apositivetraining, Anegativetraining, Apositivetesting, Anegativetesting, csize, maxk,cexpand,timeperproblem) {
@@ -121,6 +122,8 @@ exactboxes  <- function ( Apositivetraining, Anegativetraining, Apositivetesting
   
   
   model<-list()
+  
+  #The linear constraint matrix
   model$A = rbind(lconstraintA, uconstraintA, yconstraintA,positivezconstraintA, negativezconstraintA, 
                   cbind(diag(n*maxk), -diag(n*maxk), matrix(0, nrow=n*maxk, ncol=2*m*n*maxk+m*maxk+m,0)))
   
@@ -137,7 +140,7 @@ exactboxes  <- function ( Apositivetraining, Anegativetraining, Apositivetesting
   B=matrix(as.vector(B), ncol = 1)  #convert matix to single column
   
   
-  
+  #The right-hand side vector for the linear constraints (one value for each row of A)
   model$rhs <- rbind(repmat(-B+v,maxk,1), 
                repmat(B+(-v+M-epsilon),maxk,1), 
                repmat(B+v,maxk,1),
@@ -149,15 +152,28 @@ exactboxes  <- function ( Apositivetraining, Anegativetraining, Apositivetesting
                -matrix(1,mnegative,1),
                matrix(0,n*maxk,1))
   
+  #The senses of the linear constraints
   model$sense <- '<'
+  
+  #The variable types  'C' (continuous), 'B' (binary)
   model$vtype <- rbind(matrix('C',nrow=2*n*maxk,ncol=1), matrix('B',nrow=2*m*n*maxk+m*maxk+m,ncol=1))
   model$modelsense='max'
+  
+  #The lower bound vector (one value for each column of A)
   model$lb=rbind((min(min(A))-1)*matrix(1, nrow=2*n*maxk, ncol=1), matrix(0, nrow=2*m*n*maxk+m*maxk+m, ncol=1))
+  
+  #The upper bound vector (one value for each column of A)
   model$ub=rbind((max(max(A))+1)*matrix(1, nrow=2*n*maxk, ncol=1), matrix(1, nrow=2*m*n*maxk+m*maxk+m, ncol=1))
+  
+  
+  bounds <- list(upper = model[['ub']], lower = model[['lb']]) 
   
   tempcount=1
   
   for (imbalancedc in seq(from=(1/csize), to=1, by=(1/csize))) {
+      
+      
+    #The linear objective coefficients vector (one value for each column of A.)
     model$obj <- cbind(-cexpand*matrix(1, nrow=1,ncol=n*maxk),
                         cexpand*matrix(1, nrow=1, ncol=n*maxk),
                         matrix(0,nrow=1,ncol=2*m*n*maxk+m*maxk),
@@ -172,7 +188,11 @@ exactboxes  <- function ( Apositivetraining, Anegativetraining, Apositivetesting
     params$LogToConsole=0;
     params$logfile=paste0('gurobilog', as.character(imbalancedc),'.txt')
     
-    result<-gurobi(model,params)
+    #result<-gurobi(model,params)
+    result <- Rsymphony_solve_LP(obj=model$obj, mat=model$A, dir=rep(c('<'), nrow(model$A)), rhs=model$rhs, bounds=bounds, 
+                                 types=model$vtype, max=T, verbosity=-1, first_feasible=T)
+    
+    
     lowerboundary=result$x[1:(n*maxk)]
     upperboundary=result$x[(n*maxk+1):(2*n*maxk)]
     lowerboundary=matrix(lowerboundary, nrow=n, ncol=maxk)
