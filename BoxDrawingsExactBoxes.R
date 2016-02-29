@@ -222,8 +222,8 @@ predict.exactBoxes <- function(model, data, .) {
     classification=matrix(0, nrow=nrow(data), ncol=1)
         
     for (k in seq(1:model$maxk)) {
-        classification <- trainingpositiveclassification |         
-            rowSums((Apositivetesting>=repmat(lowerideal[k,],nrow(data),1)) & (data<=repmat(upperideal[k,],nrow(data),1))) == ncol(data)
+        classification <- classification |         
+            rowSums((data>=repmat(lowerideal[k,],nrow(data),1)) & (data<=repmat(upperideal[k,],nrow(data),1))) == ncol(data)
     }
     
     return (classification)
