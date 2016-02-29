@@ -2,13 +2,13 @@ library(pracma)
 library(Rsymphony)
 
 
-exectBoxes <- function (x,  ...) {
-    UseMethod("exectBoxes")
+exactBoxes <- function (x,  ...) {
+    UseMethod("exactBoxes")
 }
 
 
 
-exectBoxes.default <- function(x, y,  maxk, cexpand, positiveVal = 1, negativeVal = -1,  ...) {
+exactBoxes.default <- function(x, y,  maxk, cexpand, positiveVal = 1, negativeVal = -1,  ...) {
     call <- match.call()
     Yname <- deparse(substitute(y))
     
@@ -193,7 +193,7 @@ exectBoxes.default <- function(x, y,  maxk, cexpand, positiveVal = 1, negativeVa
 
 
 
-exectBoxes.formula <- function (formula, data,  maxk, cexpand, positiveVal = 1, negativeVal = -1, ...) {
+exactBoxes.formula <- function (formula, data,  maxk, cexpand, positiveVal = 1, negativeVal = -1, ...) {
     call <- match.call()
     if (!inherits(formula, "formula"))
         stop("method is only for formula objects")
@@ -205,7 +205,7 @@ exectBoxes.formula <- function (formula, data,  maxk, cexpand, positiveVal = 1, 
         X <- as.matrix(data[ ,-which(names(data) %in% c(res_column))])
         Y <- as.vector(data[ res_column])
                        
-        return(exectBoxes.default(X, Y, maxk, cexpand, positiveVal = 1, negativeVal = -1, ...))
+        return(exactBoxes.default(X, Y, maxk, cexpand, positiveVal = 1, negativeVal = -1, ...))
         
     }
     stop("please pass data frame as parameter")            
@@ -213,16 +213,20 @@ exectBoxes.formula <- function (formula, data,  maxk, cexpand, positiveVal = 1, 
 }
 
 
-predict.exectBoxes <- function(object, data, .) {
-    
-    testingpositiveclassification=matrix(0, nrow=nrow(data), ncol=1)
+predict.exactBoxes <- function(model, data, .) {
     
     
+    lowerideal=t(model$lowerboundary)
+    upperideal=t(model$upperboundary)
+        
+    classification=matrix(0, nrow=nrow(data), ncol=1)
+        
+    for (k in seq(1:model$maxk)) {
+        classification <- trainingpositiveclassification |         
+            rowSums((Apositivetesting>=repmat(lowerideal[k,],nrow(data),1)) & (data<=repmat(upperideal[k,],nrow(data),1))) == ncol(data)
+    }
     
-    
-    rowSums((Apositivetesting>=repmat(lowerideal[k,],nrow(data),1)) & (data<=repmat(upperideal[k,],nrow(data),1))) == ncol(data)
-    
-    
+    return (classification)
     
     
 }
