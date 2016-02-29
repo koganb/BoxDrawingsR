@@ -1,13 +1,3 @@
-debugSource("exactboxes.R")
-library(R.matlab)
-
-
-
-maxk = 1
-cexpand=0.01
-timeperproblem=4500
-
-
 dataset <- readMat("cornersample.mat")
 Apositivetraining<-dataset[["Apositivetraining"]]
 Apositivetesting<-dataset[["Apositivetesting"]]
@@ -34,15 +24,7 @@ Anegativetesting <- Anegativetesting[Anegativetesting[,3] < neg_data_fraction, -
 
 
 
-allTrainPlotData <- rbind(cbind(Apositivetraining, rep(1,nrow(Apositivetraining))),cbind(Anegativetraining, rep(-1,nrow(Anegativetraining))))
-allTestPlotData <- rbind(cbind(Apositivetesting, rep(1,nrow(Apositivetesting))),cbind(Anegativetesting, rep(-1,nrow(Anegativetesting))))
-
-
-plot(allTrainPlotData[,1],allTrainPlotData[,2],col=ifelse(allTrainPlotData[,3]==1,"red","black"))
-plot(allTestPlotData[,1],allTestPlotData[,2],col=ifelse(allTestPlotData[,3]==1,"red","black"))
-
-
-res <- exactboxes(Apositivetraining, Anegativetraining, Apositivetesting, Anegativetesting, 
-                  maxk,cexpand,timeperproblem)
-
-print(res)
+allTrainData <- rbind(cbind(Apositivetraining, rep(1,nrow(Apositivetraining))),cbind(Anegativetraining, rep(-1,nrow(Anegativetraining))))
+allTestData <- rbind(cbind(Apositivetesting, rep(1,nrow(Apositivetesting))),cbind(Anegativetesting, rep(-1,nrow(Anegativetesting))))
+write.csv(allTrainData, file = "2d_train_03_01.csv", col.names=F)
+write.csv(allTestData, file = "2d_test_03_01.csv", col.names=F)

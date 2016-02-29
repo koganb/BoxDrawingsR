@@ -1,8 +1,6 @@
 #library(Rglpk)
 library(pracma)
 library(Rsymphony)
-library(gurobi)
-library(Matrix)
 
 
 exactboxes  <- function ( Apositivetraining, Anegativetraining, Apositivetesting, Anegativetesting, maxk,cexpand,timeperproblem) {
@@ -235,5 +233,8 @@ exactboxes  <- function ( Apositivetraining, Anegativetraining, Apositivetesting
   return(result)
   
 }
+
+
+
 
 
